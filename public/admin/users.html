@@ -65,22 +65,23 @@
 						</div>
 						<div class="form-group">
 							<div class="radio-inline">
-								<label><input type="radio" name="status" value="0">未激活</label>
+								<label><input type="radio" checked name="status" value="0">未激活</label>
 							</div>
 							<div class="radio-inline">
-								<label><input type="radio" checked name="status" value="1">激活</label>
+								<label><input type="radio" name="status" value="1">激活</label>
 							</div>
 						</div>
 						<div class="form-group">
 							<div class="radio-inline">
-								<label><input type="radio" checked name="role" value="admin">超级管理员</label>
+								<label><input type="radio" name="role" value="admin">超级管理员</label>
 							</div>
 							<div class="radio-inline">
-								<label><input type="radio" name="role" value="normal">普通用户</label>
+								<label><input type="radio" checked name="role" value="normal">普通用户</label>
 							</div>
 						</div>
 						<div class="form-group">
 							<button class="btn btn-primary" type="button" id="addUser">添加</button>
+							<button class="btn btn-primary" type="button" id="editUser" style="display: none">修改</button>
 						</div>
 					</form>
 				</div>
@@ -156,13 +157,13 @@
 		{{each data}}
 		<tr>
 			<td class="text-center"><input type="checkbox"></td>
-			<td class="text-center"><img class="avatar" src="{{$value.avatar}}"></td>
+			<td class="text-center"><img class="avatar" src="{{$value.avatar? $value.avatar : '../assets/img/default.png'}}"></td>
 			<td>{{$value.email}}</td>
 			<td>{{$value.nickName}}</td>
 			<td>{{$value.status? '激活' : '未激活'}}</td>
 			<td>{{$value.role == 'admin'? '超级管理员' : '普通用户'}}</td>
 			<td class="text-center">
-				<a href="javascript:;" class="btn btn-default btn-xs">编辑</a>
+				<a href="javascript:;" data-id="{{@$value._id}}" class="btn btn-default btn-xs edit">编辑</a>
 				<a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
 			</td>
 		</tr>
@@ -171,6 +172,7 @@
 	<script>
 		let userArr = [];
 
+		// 初始化
 		$.ajax({
 			type: 'get',
 			url: '/users',
@@ -180,6 +182,7 @@
 			}
 		});
 
+		// 上传图片及预览
 		$('#avatar').on('change', function() {
 			let formData = new FormData();
 			formData.append('avatar', this.files[0]);
@@ -190,14 +193,25 @@
 				processData: false,
 				contentType: false,
 				success(data) {
-					console.log(data);
-					$('#prev').attr('src', data[0].avatar);
-					$('[name=avatar]').val(data[0].avatar);
+					if (data[0]) {
+						$('#prev').attr('src', data[0].avatar);
+						$('[name=avatar]').val(data[0].avatar);
+					}
 				}
 			});
 		});
 
+		// 添加用户
 		$('#addUser').on('click', function() {
+			let email = $('[name=email]').val();
+			let nickName = $('[name=nickName]').val();
+			let password = $('[name=password]').val();
+			console.log(email.length);
+			
+			if (!email || !nickName || !password) return alert('信息填写不完整！');
+			if (!/^\w+@\w+\.\w+$/.test(email)) return alert('邮箱填写有误！');
+			if (/\s/.test(nickName)) return alert('昵称填写有误！');
+			if (/\s/.test(password)) return alert('密码填写有误！');
 			let formData = $('#userForm').serialize();
 			$.ajax({
 				type: 'post',
@@ -207,10 +221,72 @@
 					userArr.unshift(data);
 					render();
 					$('#prev').attr('src', '../assets/img/default.png');
+					$('[name=avatar]').val('');
 					$('#userForm .back').val('');
 				}
 			})
 		});
+
+		// 修改用户
+		$('tbody').on('click', '.edit', function() {
+			let tds = $(this).parents('tr').find('td');
+
+
+			$('#userForm>h2').text('修改用户信息');
+			$('#addUser').hide();
+			$('#editUser').show();
+
+			$('#prev').prop('src', tds.eq(1).find('img').prop('src'));
+			if (tds.eq(1).find('img').prop('src').includes('uploads')) {
+				$('[name=avatar]').val(tds.eq(1).find('img').attr('src'));
+			} else {
+				$('[name=avatar]').val('');
+			}
+			$('#userForm [name=email]').val(tds.eq(2).text()).prop('readonly', true);
+			$('#userForm [name=nickName]').val(tds.eq(3).text());
+			if (tds.eq(4).text() == '激活') {
+				$('#userForm [name=status][value=1]').prop('checked', true);
+			} else {
+				$('#userForm [name=status][value=0]').prop('checked', true);
+			}
+			if (tds.eq(5).text() == '超级管理员') {
+				$('#userForm [name=role][value=admin]').prop('checked', true);
+			} else {
+				$('#userForm [name=role][value=normal]').prop('checked', true);
+			}
+		});
+		$('#editUser').on('click', function() {
+			let userObj = userArr.find(item => item.email == $('#userForm [name=email]').val());
+			let id = userObj._id;
+			
+			let formData = $('#userForm').serialize();
+			$.ajax({
+				type: 'put',
+				url: `/users/${id}`,
+				data: formData,
+				success(data) {
+					userArr.some(item => {
+						if (item._id == data._id) {
+							Object.assign(item, data);
+							return true;
+						}
+					});
+					render();
+
+					$('#userForm>h2').text('添加新用户');
+					$('#addUser').show();
+					$('#editUser').hide();
+					$('#prev').attr('src', '../assets/img/default.png');
+					$('[name=avatar]').val('');
+					$('#userForm .back').val('');
+					$('#userForm [name=status][value=0]').prop('checked', true);
+					$('#userForm [name=role][value=normal]').prop('checked', true);
+					$('#userForm [name=email]').prop('readonly', false);
+				}
+			});
+		});
+
+
 
 
 		function render(arr=userArr) {
