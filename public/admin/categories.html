@@ -152,6 +152,8 @@
 					success(data) {
 						cArr.push(data);
 						render();
+						$('form [name=title]').val('');
+						$('form [name=className]').val('');
 					}
 				});
 			} else {
