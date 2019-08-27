@@ -303,6 +303,7 @@
 					success(data) {
 						userArr = userArr.filter(item => item._id != id);
 						render();
+						$('.allDelete').hide();
 					}
 				});
 			}
@@ -349,7 +350,7 @@
 						userArr = userArr.filter(val => val._id != item._id);
 					});
 					render();
-					$('.allDelete').hide()
+					$('.allDelete').hide();
 				}
 			});
 		});
@@ -360,6 +361,7 @@
 			$('tbody input').prop('checked', false);
 			$('.allDelete').hide();
 		});
+
 
 
 		function render(arr=userArr) {
