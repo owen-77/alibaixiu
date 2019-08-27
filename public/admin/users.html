@@ -33,9 +33,9 @@
 				<h1>用户</h1>
 			</div>
 			<!-- 有错误信息时展示 -->
-			<!-- <div class="alert alert-danger">
-        <strong>错误！</strong>发生XXX错误
-      </div> -->
+			<div class="alert alert-danger" style="display: none">
+        		<strong></strong>
+      		</div>
 			<div class="row">
 				<div class="col-md-4">
 					<form id="userForm">
@@ -65,10 +65,10 @@
 						</div>
 						<div class="form-group">
 							<div class="radio-inline">
-								<label><input type="radio" checked name="status" value="0">未激活</label>
+								<label><input type="radio" name="status" value="0">未激活</label>
 							</div>
 							<div class="radio-inline">
-								<label><input type="radio" name="status" value="1">激活</label>
+								<label><input type="radio" checked name="status" value="1">激活</label>
 							</div>
 						</div>
 						<div class="form-group">
@@ -162,9 +162,9 @@
 			<td>{{$value.nickName}}</td>
 			<td>{{$value.status? '激活' : '未激活'}}</td>
 			<td>{{$value.role == 'admin'? '超级管理员' : '普通用户'}}</td>
-			<td class="text-center">
-				<a href="javascript:;" data-id="{{@$value._id}}" class="btn btn-default btn-xs edit">编辑</a>
-				<a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
+			<td class="text-center" data-id="{{@$value._id}}">
+				<a href="javascript:;" class="btn btn-default btn-xs edit">编辑</a>
+				<a href="javascript:;" class="btn btn-danger btn-xs delete">删除</a>
 			</td>
 		</tr>
 		{{/each}}
@@ -206,7 +206,6 @@
 			let email = $('[name=email]').val();
 			let nickName = $('[name=nickName]').val();
 			let password = $('[name=password]').val();
-			console.log(email.length);
 			
 			if (!email || !nickName || !password) return alert('信息填写不完整！');
 			if (!/^\w+@\w+\.\w+$/.test(email)) return alert('邮箱填写有误！');
@@ -223,6 +222,11 @@
 					$('#prev').attr('src', '../assets/img/default.png');
 					$('[name=avatar]').val('');
 					$('#userForm .back').val('');
+				},
+				error(data) {
+					let result = JSON.parse(data.responseText).message;
+					$('.alert strong').text(result);
+					$('.alert').fadeIn(1000).delay(1000).fadeOut(1000);
 				}
 			})
 		});
@@ -230,7 +234,6 @@
 		// 修改用户
 		$('tbody').on('click', '.edit', function() {
 			let tds = $(this).parents('tr').find('td');
-
 
 			$('#userForm>h2').text('修改用户信息');
 			$('#addUser').hide();
@@ -279,13 +282,27 @@
 					$('#prev').attr('src', '../assets/img/default.png');
 					$('[name=avatar]').val('');
 					$('#userForm .back').val('');
-					$('#userForm [name=status][value=0]').prop('checked', true);
+					$('#userForm [name=status][value=1]').prop('checked', true);
 					$('#userForm [name=role][value=normal]').prop('checked', true);
 					$('#userForm [name=email]').prop('readonly', false);
 				}
 			});
 		});
 
+		// 删除单一用户
+		$('tbody').on('click', '.delete', function() {
+			if (confirm('您确定要删除此用户吗？')) {
+				let id = $(this).parent().data('id');
+				$.ajax({
+					type: 'delete',
+					url: `/users/${id}`,
+					success(data) {
+						userArr = userArr.filter(item => item._id != id);
+						render();
+					}
+				});
+			}
+		});
 
 
 
