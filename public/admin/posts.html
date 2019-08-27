@@ -147,9 +147,7 @@
 	</script>
 	<script>
 		template.defaults.imports.dateFormat = (date) => {
-			let time = new Date(date);
-			let str = `${time.getFullYear()}-${(time.getMonth()+1).toString().padStart(2,0)}-${time.getDate().toString().padStart(2,0)}`;
-			return str;
+			return date.substring(0, 10);
 		}
 
 		let category = $('[name=category]').val();
