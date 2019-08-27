@@ -156,7 +156,7 @@
 	<script type="text/html" id="userTpl">
 		{{each data}}
 		<tr>
-			<td class="text-center"><input type="checkbox"></td>
+			<td class="text-center"><input type="checkbox" data-id="{{@$value._id}}"></td>
 			<td class="text-center"><img class="avatar" src="{{$value.avatar? $value.avatar : '../assets/img/default.png'}}"></td>
 			<td>{{$value.email}}</td>
 			<td>{{$value.nickName}}</td>
@@ -233,6 +233,10 @@
 
 		// 修改用户
 		$('tbody').on('click', '.edit', function() {
+			$('thead input').prop('checked', false);
+			$('tbody input').prop('checked', false);
+			$('.allDelete').hide();
+
 			let tds = $(this).parents('tr').find('td');
 
 			$('#userForm>h2').text('修改用户信息');
@@ -305,9 +309,9 @@
 		});
 
 		// 全选
-		$('thead [type=checkbox]').on('click', function() {
+		$('thead input').on('click', function() {
 			let flag = $(this).prop('checked')
-			$('tbody [type=checkbox]').prop('checked', flag);
+			$('tbody input').prop('checked', flag);
 			if (flag) {
 				$('.allDelete').show();
 			} else {
@@ -315,13 +319,13 @@
 			}
 			
 		});
-		$('tbody').on('click', '[type=checkbox]', function() {
+		$('tbody').on('click', 'input', function() {
 			let users = userArr.length;
-			let checkedLength = $('tbody [type=checkbox]:checked').length;
+			let checkedLength = $('tbody input:checked').length;
 			if (users == checkedLength) {
-				$('thead [type=checkbox]').prop('checked', true);
+				$('thead input').prop('checked', true);
 			} else {
-				$('thead [type=checkbox]').prop('checked', false);
+				$('thead input').prop('checked', false);
 			}
 			if (checkedLength > 1) {
 				$('.allDelete').show();
@@ -331,7 +335,31 @@
 		});
 
 		// 批量删除
+		$('.allDelete').on('click', function() {
+			let ids = [];
+			let checkeds = $('tbody input:checked');
+			checkeds.each((index, dom) => {
+				ids.push($(dom).data('id'));
+			});
+			$.ajax({
+				type: 'delete',
+				url: `/users/${ids.join('-')}`,
+				success(data) {
+					data.map(item => {
+						userArr = userArr.filter(val => val._id != item._id);
+					});
+					render();
+					$('.allDelete').hide()
+				}
+			});
+		});
 
+		// 点击表单初始化全选和删除
+		$('#userForm').on('mousedown', '[type]', function() {
+			$('thead input').prop('checked', false);
+			$('tbody input').prop('checked', false);
+			$('.allDelete').hide();
+		});
 
 
 		function render(arr=userArr) {
