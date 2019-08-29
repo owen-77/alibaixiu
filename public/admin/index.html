@@ -1,6 +1,11 @@
 <script src="/login/status"></script>
 <script>
   if(!isLogin) location.href = 'login.html';
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('h3.name').innerHTML = userName;
+    document.querySelector('img.avatar').setAttribute('src', img.path);
+  });
 </script>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -37,9 +42,9 @@
               <h3 class="panel-title">站点内容统计：</h3>
             </div>
             <ul class="list-group">
-              <li class="list-group-item"><strong>10</strong>篇文章（<strong>2</strong>篇草稿）</li>
-              <li class="list-group-item"><strong>6</strong>个分类</li>
-              <li class="list-group-item"><strong>5</strong>条评论（<strong>1</strong>条待审核）</li>
+              <li class="list-group-item post"></li>
+              <li class="list-group-item categories" ></li>
+              <li class="list-group-item comment"></li>
             </ul>
           </div>
         </div>
@@ -51,8 +56,8 @@
 
   <div class="aside">
     <div class="profile">
-      <img class="avatar" src="../uploads/avatar.jpg">
-      <h3 class="name">Coder</h3>
+      <img class="avatar">
+      <h3 class="name"></h3>
     </div>
     <ul class="nav">
       <li class="active">
@@ -90,6 +95,31 @@
   <script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
   
   <script src="../assets/js/logout.js"></script>
+
+  <script>
+    $.ajax({
+      type: 'get',
+      url: '/posts/count',
+      success(data) {
+        $('.post').html(`<strong>${data.postCount}</strong>篇文章（<strong>${data.draftCount}</strong>篇草稿）`);
+      }
+    });
+    $.ajax({
+      type: 'get',
+      url: '/categories/count',
+      success(data) {
+        $('.categories').html(`<strong>${data.categoryCount}</strong>个分类`);
+      }
+    });
+    $.ajax({
+      type: 'get',
+      url: '/comments/count',
+      success(data) {
+        $('.comment').html(`<strong>${data.commentCount}</strong>条评论（<strong>${data.draftCount}</strong>条未审核）`);
+      }
+    });
+  </script>
+
   <script>NProgress.done()</script>
   
 </body>

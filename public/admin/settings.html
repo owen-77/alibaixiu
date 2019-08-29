@@ -1,6 +1,11 @@
 <script src="/login/status"></script>
 <script>
   if(!isLogin) location.href = 'login.html';
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('h3.name').innerHTML = userName;
+    document.querySelector('img.avatar').setAttribute('src', img.path);
+  });
 </script>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -36,40 +41,40 @@
         <div class="form-group">
           <label for="site_logo" class="col-sm-2 control-label">网站图标</label>
           <div class="col-sm-6">
-            <input id="site_logo" name="site_logo" type="hidden">
             <label class="form-image">
               <input id="logo" type="file">
-              <img src="../assets/img/logo.png">
+              <img class="logo" src="../assets/img/logo.png">
               <i class="mask fa fa-upload"></i>
+              <input type="hidden" name="logo">
             </label>
           </div>
         </div>
         <div class="form-group">
           <label for="site_name" class="col-sm-2 control-label">站点名称</label>
           <div class="col-sm-6">
-            <input id="site_name" name="site_name" class="form-control" type="type" placeholder="站点名称">
+            <input id="site_name" name="title" class="form-control" type="type" placeholder="站点名称">
           </div>
         </div>
         <div class="form-group">
           <label for="site_description" class="col-sm-2 control-label">站点描述</label>
           <div class="col-sm-6">
-            <textarea id="site_description" name="site_description" class="form-control" placeholder="站点描述" cols="30" rows="6"></textarea>
+            <textarea id="site_description" name="description" class="form-control" placeholder="站点描述" cols="30" rows="6"></textarea>
           </div>
         </div>
         <div class="form-group">
           <label for="site_keywords" class="col-sm-2 control-label">站点关键词</label>
           <div class="col-sm-6">
-            <input id="site_keywords" name="site_keywords" class="form-control" type="type" placeholder="站点关键词">
+            <input id="site_keywords" name="keywords" class="form-control" type="type" placeholder="站点关键词">
           </div>
         </div>
         <div class="form-group">
           <label class="col-sm-2 control-label">评论</label>
           <div class="col-sm-6">
             <div class="checkbox">
-              <label><input id="comment_status" name="comment_status" type="checkbox" checked>开启评论功能</label>
+              <label><input name="comment" type="checkbox" checked>开启评论功能</label>
             </div>
             <div class="checkbox">
-              <label><input id="comment_reviewed" name="comment_reviewed" type="checkbox" checked>评论必须经人工批准</label>
+              <label><input name="review" type="checkbox" checked>评论必须经人工批准</label>
             </div>
           </div>
         </div>
@@ -84,8 +89,8 @@
 
   <div class="aside">
     <div class="profile">
-      <img class="avatar" src="../uploads/avatar.jpg">
-      <h3 class="name">Coder</h3>
+      <img class="avatar">
+      <h3 class="name"></h3>
     </div>
     <ul class="nav">
       <li>
@@ -123,6 +128,57 @@
   <script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
 
   <script src="../assets/js/logout.js"></script>
+
+  <script>
+    $.ajax({
+      type: 'get',
+      url: '/settings',
+      success(data) {
+        
+        if (!data.logo) data.logo = '../assets/img/logo.png';
+        $('.logo').attr('src', data.logo);
+        $('[name=logo]').val(data.logo);
+        $('[name=comment]').prop('checked', data.comment);
+        $('[name=review]').prop('checked', data.review);
+        $('[name=title]').val(data.title);
+        $('[name=description]').val(data.description);
+        $('[name=keywords]').val(data.keywords);
+      }
+    });
+
+    $('#logo').on('change', function() {
+      let formData = new FormData();
+      formData.append('path', this.files[0]);
+      $.ajax({
+        type: 'post',
+        url: '/upload',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success(data) {
+          $('.logo').show().attr('src', data[0].path);
+          $('[name=logo]').val(data[0].path);
+        }
+      });
+    });
+
+    $('form').on('submit', function() {
+      let formData = new FormData(this);
+      formData.set('comment', $('[name=comment]').prop('checked'));
+      formData.set('review', $('[name=review]').prop('checked'));
+      
+      
+      $.ajax({
+        type: 'post',
+        url: '/settings',
+        data: formData,
+        processData: false,
+        contentType: false,
+      });
+      return false;
+    });
+  </script>
+
   <script>NProgress.done()</script>
 </body>
 </html>

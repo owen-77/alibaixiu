@@ -1,6 +1,11 @@
 <script src="/login/status"></script>
 <script>
   if(!isLogin) location.href = 'login.html';
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('h3.name').innerHTML = userName;
+    document.querySelector('img.avatar').setAttribute('src', img.path);
+  });
 </script>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -40,11 +45,12 @@
               <label for="image">图片</label>
               <!-- show when image chose -->
               <img class="help-block thumbnail" style="display: none">
-              <input id="image" class="form-control" name="image" type="file">
+              <input id="file" class="form-control" type="file">
+              <input type="hidden" name="image">
             </div>
             <div class="form-group">
-              <label for="text">文本</label>
-              <input id="text" class="form-control" name="text" type="text" placeholder="文本">
+              <label for="text">标题</label>
+              <input id="text" class="form-control" name="title" type="text" placeholder="标题">
             </div>
             <div class="form-group">
               <label for="link">链接</label>
@@ -60,28 +66,13 @@
             <thead>
               <tr>
                 <th class="text-center">图片</th>
-                <th>文本</th>
+                <th>标题</th>
                 <th>链接</th>
                 <th class="text-center" width="100">操作</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="text-center"><img class="slide" src="../uploads/slide_1.jpg"></td>
-                <td>XIU功能演示</td>
-                <td>#</td>
-                <td class="text-center">
-                  <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
-                </td>
-              </tr>
-              <tr>
-                <td class="text-center"><img class="slide" src="../uploads/slide_2.jpg"></td>
-                <td>XIU功能演示</td>
-                <td>#</td>
-                <td class="text-center">
-                  <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
-                </td>
-              </tr>
+              
             </tbody>
           </table>
         </div>
@@ -91,8 +82,8 @@
 
   <div class="aside">
     <div class="profile">
-      <img class="avatar" src="../uploads/avatar.jpg">
-      <h3 class="name">Coder</h3>
+      <img class="avatar">
+      <h3 class="name"></h3>
     </div>
     <ul class="nav">
       <li>
@@ -128,8 +119,85 @@
 
   <script src="../assets/vendors/jquery/jquery.js"></script>
   <script src="../assets/vendors/bootstrap/js/bootstrap.js"></script>
+  <script src="../assets/vendors/art-template/template-web.js"></script>
 
   <script src="../assets/js/logout.js"></script>
+
+  <script type="text/html" id="listTpl">
+    {{each data}}
+    <tr>
+      <td class="text-center"><img class="slide" src="{{$value.image}}"></td>
+      <td>{{$value.title}}</td>
+      <td>{{$value.link}}</td>
+      <td class="text-center">
+        <a href="javascript:;" data-id="{{@$value._id}}" class="btn btn-danger btn-xs delete">删除</a>
+      </td>
+    </tr>
+    {{/each}}
+  </script>
+  <script>
+    let listAry = [];
+
+    $.ajax({
+      type: 'get',
+      url: '/slides',
+      success(data) {
+        listAry = data;
+        render();
+      }
+    });
+
+    $('#file').on('change', function() {
+      let formData = new FormData();
+      formData.append('path', this.files[0]);
+      $.ajax({
+        type: 'post',
+        url: '/upload',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success(data) {
+          $('.thumbnail').show().attr('src', data[0].path);
+          $('[name=image]').val(data[0].path);
+        }
+      });
+    });
+
+    $('form').on('submit', function() {
+      let formData = $(this).serialize();
+      $.ajax({
+        type: 'post',
+        url: '/slides',
+        data: formData,
+        success(data) {
+          listAry.push(data);
+          render();
+          $('.thumbnail').hide().attr('src', '');
+          $('form input').val('');
+        }
+      });
+      return false;
+    });
+
+    $('tbody').on('click', '.delete', function() {
+      let id = $(this).data('id');
+      $.ajax({
+        type: 'delete', 
+        url: `/slides/${id}`,
+        success(data) {
+          listAry = listAry.filter(item => item._id != data._id);
+          render();
+        }
+      });
+    });
+
+
+    function render(arr=listAry) {
+      let list = template('listTpl', {data: arr});
+      $('tbody').html(list);
+    }
+  </script>
+
   <script>NProgress.done()</script>
 </body>
 </html>
