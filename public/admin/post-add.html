@@ -130,6 +130,8 @@
 	</script>
 
 	<script>
+		let id = getUrlParams('id');
+
 		$.ajax({
 			type: 'get',
 			url: '/categories',
@@ -160,17 +162,53 @@
 			});
 		});
 
-		$('#save').on('click', function() {
-			let formData = $('form').serialize();
+		if (id) {
 			$.ajax({
-				type: 'post',
-				url: '/posts',
-				data: formData,
-				success() {
-					location.href = 'posts.html'
+				type: 'get',
+				url: `/posts/${id}`,
+				success(data) {
+					$('h1').text('编辑文章');
+					$('[name=title]').val(data.title);
+					$('[name=content]').val(data.content);
+					$('[name=thumbnail]').val(data.thumbnail);
+					$('.thumbnail').show().attr('src', data.thumbnail);
+					$('[name=category]').val(data.category);
+					$('[name=createAt]').val(data.createAt.substring(0, 16));
+					$('[name=state]').val(data.state); 
 				}
 			});
+		}
+
+		$('#save').on('click', function() {
+			let formData = $('form').serialize();
+			if (id) {
+				$.ajax({
+					type: 'put',
+					url: `/posts/${id}`,
+					data: formData,
+					success() {
+						location.href = 'posts.html';
+					}
+				});
+			} else {
+				$.ajax({
+					type: 'post',
+					url: '/posts',
+					data: formData,
+					success() {
+						location.href = 'posts.html';
+					}
+				});
+			}
 		});
+
+
+		
+		function getUrlParams(name) {
+			let params = location.search;
+			params = new URLSearchParams(params)
+			return params.get(name);
+		}
 	</script>
 
 

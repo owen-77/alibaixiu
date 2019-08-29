@@ -119,25 +119,25 @@
 			<td class="text-center">{{dateFormat($value.createAt)}}</td>
 			<td class="text-center">{{$value.state? '已发布' : '草稿'}}</td>
 			<td class="text-center">
-				<a href="javascript:;" class="btn btn-default btn-xs">编辑</a>
-				<a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
+				<a href="post-add.html?id={{@$value._id}}" class="btn btn-default btn-xs">编辑</a>
+				<a href="javascript:;" class="btn btn-danger btn-xs delete" data-id="{{@$value._id}}">删除</a>
 			</td>
 		</tr>
 		{{/each}}
 	</script>
 	<script type="text/html" id="pageTpl">
 		{{if data.page > 1}}
-		<li><a href="javascript:;" onclick="render({{data.page-1}}, category, state)">上一页</a></li>
+		<li><a href="javascript:;" onclick="render(category, state, {{data.page-1}})">上一页</a></li>
 		{{/if}}
 
 		{{if data.display.length > 1}}
 		{{each data.display}}
-		<li><a href="javascript:;" onclick="render({{$index+1}}, category, state)">{{$index+1}}</a></li>
+		<li class="{{$index+1 == data.page? 'active' : ''}}"><a href="javascript:;" onclick="render(category, state, {{$index+1}})">{{$index+1}}</a></li>
 		{{/each}}
 		{{/if}}
 
 		{{if data.page < data.pages}}
-		<li><a href="javascript:;" onclick="render({{data.page+1}}, category, state)">下一页</a></li>
+		<li><a href="javascript:;" onclick="render(category, state, {{data.page+1}})">下一页</a></li>
 		{{/if}}
 	</script>
 	<script type="text/html" id="selectTpl">
@@ -167,21 +167,39 @@
 		$('[type=button]').on('click', function() {
 			category = $('[name=category]').val();
 			state = $('[name=state]').val();
-			render(1, category, state);	
+			render(category, state);
+			this.blur();
 		});
 
 		$('[name=category]').on('change', function() {
 			$('[name=state]').val('all');
 		});
 
+		$('tbody').on('click', '.delete', function() {
+			if (confirm('您确定要删除此文章吗？')) {
+				let id = $(this).data('id');
+				$.ajax({
+					type: 'delete',
+					url: `/posts/${id}`,
+					success() {
+						if (currentPage > 1 && $('tbody>tr').length == 1) {
+							currentPage -= 1;
+						}
+						render(category, state, currentPage);
+					}
+				});
+			}
+		});
 
-		function render(page=1, category='all', state='all') {
+
+
+		function render(category='all', state='all', page=1, ) {
 			$.ajax({
 				type: 'get',
 				url: '/posts',
 				data: {page, category, state},
 				success(res) {
-					// pArr = res.records;
+					window.currentPage = res.page;
 					let list = template('postsTpl', {data: res.records});
 					$('tbody').html(list);
 					let page = template('pageTpl', {data: res});
