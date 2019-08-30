@@ -109,7 +109,7 @@
             <td>{{$value.author.nickName}}</td>
             <td>{{$value.content}}</td>
             <td>{{$value.post.title}}</td>
-            <td>{{$value.createAt.substring(0, 10)}}</td>
+            <td>{{$value.createAt.substring(0, 16).replace(/T/, ' ')}}</td>
             <td>{{$value.state? '已批准' : '未审核'}}</td>
             <td class="text-center">
                 <a href="javascript:;" data-id="{{@$value._id}}" class="btn {{$value.state? 'btn-warning' : 'btn-info'}} btn-xs status">{{$value.state? '驳回' : '批准'}}</a>
