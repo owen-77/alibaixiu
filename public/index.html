@@ -17,7 +17,6 @@
     <div class="header">
       <h1 class="logo"><a href="index.html"><img src="assets/img/logo.png" alt=""></a></h1>
       <ul class="nav">
-
       </ul>
       <div class="search">
         <form>
@@ -102,11 +101,11 @@
         <p class="extra">
           <span class="reading">阅读({{$value.meta.views}})</span>
           <span class="comment">评论({{$value.meta.comments}})</span>
-          <a href="/detail.html?id={{$value._id}}" class="like">
+          <a href="javascript:;" class="like">
             <i class="fa fa-thumbs-up"></i>
             <span>赞({{$value.meta.likes}})</span>
           </a>
-          <a href="/detail.html?id={{$value._id}}" class="tags">
+          <a href="javascript:;" class="tags">
             分类：<span>{{$value.category.title}}</span>
           </a>
         </p>
