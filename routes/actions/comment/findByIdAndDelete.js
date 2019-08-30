@@ -2,6 +2,8 @@
 const Joi = require('joi');
 // 分类模块
 const { Comment } = require('../../../model/Comment');
+const { Post } = require('../../../model/Post');
+
 
 module.exports = async (req, res) => {
 	// 获取评论id
@@ -15,6 +17,12 @@ module.exports = async (req, res) => {
 	// 通过验证
 	// 删除分类
 	let comment = await Comment.findByIdAndDelete(id);
+	// 找到被评论的文章
+	let post = await Post.findOne({_id: comment.post});
+	// 修改评论数量
+	post.meta.comments = post.meta.comments - 1;
+	// 保存文章数据
+	await post.save();
 	// 响应
 	res.send(comment);
 	

@@ -172,6 +172,12 @@
         $('.topnav>ul').append(navs);
       }
     });
+
+    $('.search form').on('submit', function() {
+      let key = $(this).find('.keys').val();
+      location.href = `search.html?key=${key}`
+      return false;
+    });
   </script>
 </body>
 </html>

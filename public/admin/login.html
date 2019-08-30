@@ -45,7 +45,11 @@
 					password: password
 				},
 				success(data) {
-					location.href = 'index.html';
+					if (data.role == 'admin') {
+						location.href = 'index.html';
+					} else {
+						location.href = '/index.html';
+					}
 				},
 				error(data) {
 					alertBox.fadeIn(1000).delay(1000).fadeOut(1000);
